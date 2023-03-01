@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EnviarCorreoMailable;
 use App\Models\Contacto;
 use Illuminate\Http\Request;
+
 
 class ContactoController extends Controller
 {
@@ -40,6 +43,8 @@ class ContactoController extends Controller
         //
     }
 
+    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -48,23 +53,55 @@ class ContactoController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => ['required'],
-            'email' => ['required'],
-            'mensaje' => ['required'],
-        ]);
+        //$request->validate([
+        //    'nombre' => ['required'],
+        //    'email' => ['required'],
+        //    'mensaje' => ['required'],
+        //]);
 
-        $contacto = Contacto::create([
-            'nombre' => $request['nombre'],
-            'email' => $request['email'],
-            'telefono' => $request['telefono'],
-            'mensaje' => $request['mensaje'],
-        ]);
+        //$contacto = Contacto::create([
+        //    'nombre' => $request['nombre'],
+        //    'email' => $request['email'],
+        //    'telefono' => $request['telefono'],
+        //    'mensaje' => $request['mensaje'],
+        //]);
 
-        return response()->json(
-            ['mensaje' => 'Datos del contacto',
-                'data' => $contacto]
-        );
+        //return response()->json(
+        //    ['mensaje' => 'Datos del contacto',
+        //        'data' => $contacto]
+        //);
+
+        try {
+            $request->validate([
+                'nombre' => ['required'],
+                'email' => ['required'],
+                'mensaje' => ['required'],
+            ]);
+
+            $contacto = Contacto::create([
+                'nombre' => $request['nombre'],
+                'email' => $request['email'],
+                'telefono' => $request['telefono'],
+                'mensaje' => $request['mensaje'],
+            ]);
+            
+            
+            $details = [
+            'title' => 'PIN Grupo 8',
+            'body' => $contacto->nombre
+            ];
+            Mail::to($contacto->email)->send(new \App\Mail\sendPost($details));
+
+            return response()->json(
+                ['mensaje' => 'Datos del contacto',
+                    'data' => $contacto]
+            );
+        } catch (\Exception $e) {
+            return response()->json(
+                ['mensaje' => $e->getMessage(),
+                    'data' => null]
+            );
+        }
     }
 
     /**
